@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahjong - Apprentissage du Chinois</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            zoom: 80%;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #e94560;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .settings-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+        }
+
+        .setting-group label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ff9a3c;
+        }
+
+        .setting-group select, .setting-group button {
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #0f3460;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .setting-group select:hover, .setting-group button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .level-display {
+            background: linear-gradient(135deg, #e94560, #c53d54);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            min-width: 120px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 800px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
+
+        .tile {
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #2d4059, #1e2a3f);
+            border: 2px solid #e94560;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+            color: white;
+        }
+
+        .tile .pinyin {
+            font-size: 0.35em;
+            margin-top: 4px;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+
+        .tile:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
+            border-color: #ff9a3c;
+        }
+
+        .tile.selected {
+            background: linear-gradient(145deg, #e94560, #c53d54);
+            border-color: #ff9a3c;
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.6);
+            animation: pulse 0.6s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from {
+                box-shadow: 0 0 20px rgba(233, 69, 96, 0.4);
+            }
+            to {
+                box-shadow: 0 0 40px rgba(233, 69, 96, 0.8);
+            }
+        }
+
+        .tile.matched {
+            animation: matchAnimation 0.6s forwards;
+        }
+
+        @keyframes matchAnimation {
+            0% {
+                transform: scale(1.1) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.3) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #e94560, #c53d54);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+            background: linear-gradient(135deg, #ff9a3c, #e94560);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .learning-popup {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(45, 64, 89, 0.95);
+            border: 2px solid #e94560;
+            border-radius: 15px;
+            padding: 15px 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: none;
+            max-width: 90%;
+        }
+
+        .learning-popup .hanzi {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            font-family: 'KaiTi', 'SimKai', 'STKaiti', serif;
+        }
+
+        .learning-popup .pinyin {
+            font-size: 1.5em;
+            color: #ff9a3c;
+            margin-bottom: 8px;
+        }
+
+        .learning-popup .translation {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .learning-popup .play-sound {
+            margin-top: 10px;
+            background: rgba(233, 69, 96, 0.3);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 10px auto 0;
+            transition: all 0.3s;
+        }
+
+        .learning-popup .play-sound:hover {
+            background: rgba(233, 69, 96, 0.6);
+            transform: scale(1.1);
+        }
+
+        .victory-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(45, 64, 89, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            z-index: 1000;
+            border: 3px solid #e94560;
+            max-width: 90%;
+        }
+
+        .victory-message h2 {
+            color: #e94560;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .victory-message p {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                zoom: 100%;
+            }
+            
+            .game-board {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 5px;
+                padding: 10px;
+            }
+            
+            .tile {
+                font-size: 1.4em;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .info-item {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+            
+            .settings-panel {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .setting-group {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-board {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 4px;
+            }
+            
+            .tile {
+                font-size: 1.1em;
+                border-width: 1px;
+            }
+            
+            .tile .pinyin {
+                font-size: 0.3em;
+                margin-top: 2px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+            
+            .learning-popup {
+                padding: 10px 15px;
+            }
+            
+            .learning-popup .hanzi {
+                font-size: 2em;
+            }
+            
+            .learning-popup .pinyin {
+                font-size: 1.2em;
+            }
+            
+            .learning-popup .translation {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mahjong - Apprentissage du Chinois</h1>
+            
+            <div class="settings-panel">
+                <div class="setting-group">
+                    <label for="languageSelect">Langue:</label>
+                    <select id="languageSelect">
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="es">Español</option>
+                        <option value="fa">فارسی</option>
+                    </select>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="themeSelect">Thème de vocabulaire:</label>
+                    <select id="themeSelect">
+                        <option value="basics">Nombres & Bases (A1)</option>
+                        <option value="nature">Nature (A1)</option>
+                        <option value="family">Famille (A2)</option>
+                        <option value="food">Nourriture (A2)</option>
+                        <option value="verbs">Verbes Communs (B1)</option>
+                    </select>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="zoomSelect">Zoom (PC):</label>
+                    <select id="zoomSelect">
+                        <option value="100">100%</option>
+                        <option value="90">90%</option>
+                        <option value="80" selected>80%</option>
+                        <option value="70">70%</option>
+                        <option value="60">60%</option>
+                    </select>
+                </div>
+                
+                <div class="setting-group">
+                    <label>&nbsp;</label>
+                    <button onclick="saveSettings()">Appliquer les paramètres</button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="level-display">
+            Niveau: <span id="level">A1 - Débutant</span>
+        </div>
+        
+        <div class="game-info">
+            <div class="info-item">Score: <span id="score">0</span></div>
+            <div class="info-item">Paires: <span id="pairs">0</span>/16</div>
+            <div class="info-item">Temps: <span id="timer">00:00</span></div>
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <div class="controls">
+            <button onclick="newGame()">Nouvelle Partie</button>
+            <button onclick="hint()">Indice 💡</button>
+            <button onclick="shuffle()">Mélanger 🔄</button>
+            <button onclick="showScores()">Scores 🏆</button>
+        </div>
+    </div>
+
+    <div class="learning-popup" id="learningPopup">
+        <div class="hanzi" id="popupHanzi"></div>
+        <div class="pinyin" id="popupPinyin"></div>
+        <div class="translation" id="popupTranslation"></div>
+        <button class="play-sound" onclick="playCurrentSound()">🔊</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="victory-message" id="victoryMessage">
+        <h2>🎉 Félicitations! 🎉</h2>
+        <p>Vous avez terminé le jeu!</p>
+        <p>Score final: <span id="finalScore">0</span></p>
+        <p>Niveau atteint: <span id="finalLevel">A1 - Débutant</span></p>
+        <p>Temps: <span id="finalTime">00:00</span></p>
+        <button onclick="newGame()">Nouvelle Partie</button>
+    </div>
+
+    <script>
+        // Dictionnaires de caractères chinois par thème
+        const themes = {
+            basics: {
+                name: "Nombres & Bases",
+                level: "A1",
+                characters: [
+                    { hanzi: '一', pinyin: 'yī', translations: { fr: 'un', en: 'one', de: 'eins', it: 'uno', es: 'uno', fa: 'یک' } },
+                    { hanzi: '二', pinyin: 'èr', translations: { fr: 'deux', en: 'two', de: 'zwei', it: 'due', es: 'dos', fa: 'دو' } },
+                    { hanzi: '三', pinyin: 'sān', translations: { fr: 'trois', en: 'three', de: 'drei', it: 'tre', es: 'tres', fa: 'سه' } },
+                    { hanzi: '四', pinyin: 'sì', translations: { fr: 'quatre', en: 'four', de: 'vier', it: 'quattro', es: 'cuatro', fa: 'چهار' } },
+                    { hanzi: '五', pinyin: 'wǔ', translations: { fr: 'cinq', en: 'five', de: 'fünf', it: 'cinque', es: 'cinco', fa: 'پنج' } },
+                    { hanzi: '六', pinyin: 'liù', translations: { fr: 'six', en: 'six', de: 'sechs', it: 'sei', es: 'seis', fa: 'شش' } },
+                    { hanzi: '七', pinyin: 'qī', translations: { fr: 'sept', en: 'seven', de: 'sieben', it: 'sette', es: 'siete', fa: 'هفت' } },
+                    { hanzi: '八', pinyin: 'bā', translations: { fr: 'huit', en: 'eight', de: 'acht', it: 'otto', es: 'ocho', fa: 'هشت' } },
+                    { hanzi: '九', pinyin: 'jiǔ', translations: { fr: 'neuf', en: 'nine', de: 'neun', it: 'nove', es: 'nueve', fa: 'نه' } },
+                    { hanzi: '十', pinyin: 'shí', translations: { fr: 'dix', en: 'ten', de: 'zehn', it: 'dieci', es: 'diez', fa: 'ده' } },
+                    { hanzi: '人', pinyin: 'rén', translations: { fr: 'personne', en: 'person', de: 'Person', it: 'persona', es: 'persona', fa: 'شخص' } },
+                    { hanzi: '大', pinyin: 'dà', translations: { fr: 'grand', en: 'big', de: 'groß', it: 'grande', es: 'grande', fa: 'بزرگ' } },
+                    { hanzi: '小', pinyin: 'xiǎo', translations: { fr: 'petit', en: 'small', de: 'klein', it: 'piccolo', es: 'pequeño', fa: 'کوچک' } },
+                    { hanzi: '日', pinyin: 'rì', translations: { fr: 'soleil', en: 'sun', de: 'Sonne', it: 'sole', es: 'sol', fa: 'خورشید' } },
+                    { hanzi: '月', pinyin: 'yuè', translations: { fr: 'lune', en: 'moon', de: 'Mond', it: 'luna', es: 'luna', fa: 'ماه' } },
+                    { hanzi: '水', pinyin: 'shuǐ', translations: { fr: 'eau', en: 'water', de: 'Wasser', it: 'acqua', es: 'agua', fa: 'آب' } }
+                ]
+            },
+            nature: {
+                name: "Nature",
+                level: "A1",
+                characters: [
+                    { hanzi: '山', pinyin: 'shān', translations: { fr: 'montagne', en: 'mountain', de: 'Berg', it: 'montagna', es: 'montaña', fa: 'کوه' } },
+                    { hanzi: '水', pinyin: 'shuǐ', translations: { fr: 'eau', en: 'water', de: 'Wasser', it: 'acqua', es: 'agua', fa: 'آب' } },
+                    { hanzi: '火', pinyin: 'huǒ', translations: { fr: 'feu', en: 'fire', de: 'Feuer', it: 'fuoco', es: 'fuego', fa: 'آتش' } },
+                    { hanzi: '木', pinyin: 'mù', translations: { fr: 'bois', en: 'wood', de: 'Holz', it: 'legno', es: 'madera', fa: 'چوب' } },
+                    { hanzi: '石', pinyin: 'shí', translations: { fr: 'pierre', en: 'stone', de: 'Stein', it: 'pietra', es: 'piedra', fa: 'سنگ' } },
+                    { hanzi: '天', pinyin: 'tiān', translations: { fr: 'ciel', en: 'sky', de: 'Himmel', it: 'cielo', es: 'cielo', fa: 'آسمان' } },
+                    { hanzi: '地', pinyin: 'dì', translations: { fr: 'terre', en: 'earth', de: 'Erde', it: 'terra', es: 'tierra', fa: 'زمین' } },
+                    { hanzi: '风', pinyin: 'fēng', translations: { fr: 'vent', en: 'wind', de: 'Wind', it: 'vento', es: 'viento', fa: 'باد' } },
+                    { hanzi: '雨', pinyin: 'yǔ', translations: { fr: 'pluie', en: 'rain', de: 'Regen', it: 'pioggia', es: 'lluvia', fa: 'باران' } },
+                    { hanzi: '云', pinyin: 'yún', translations: { fr: 'nuage', en: 'cloud', de: 'Wolke', it: 'nuvola', es: 'nube', fa: 'ابر' } },
+                    { hanzi: '花', pinyin: 'huā', translations: { fr: 'fleur', en: 'flower', de: 'Blume', it: 'fiore', es: 'flor', fa: 'گل' } },
+                    { hanzi: '草', pinyin: 'cǎo', translations: { fr: 'herbe', en: 'grass', de: 'Gras', it: 'erba', es: 'hierba', fa: 'چمن' } },
+                    { hanzi: '树', pinyin: 'shù', translations: { fr: 'arbre', en: 'tree', de: 'Baum', it: 'albero', es: 'árbol', fa: 'درخت' } },
+                    { hanzi: '鱼', pinyin: 'yú', translations: { fr: 'poisson', en: 'fish', de: 'Fisch', it: 'pesce', es: 'pez', fa: 'ماهی' } },
+                    { hanzi: '鸟', pinyin: 'niǎo', translations: { fr: 'oiseau', en: 'bird', de: 'Vogel', it: 'uccello', es: 'pájaro', fa: 'پرنده' } },
+                    { hanzi: '虫', pinyin: 'chóng', translations: { fr: 'insecte', en: 'insect', de: 'Insekt', it: 'insetto', es: 'insecto', fa: 'حشره' } }
+                ]
+            },
+            family: {
+                name: "Famille",
+                level: "A2",
+                characters: [
+                    { hanzi: '家', pinyin: 'jiā', translations: { fr: 'famille', en: 'family', de: 'Familie', it: 'famiglia', es: 'familia', fa: 'خانواده' } },
+                    { hanzi: '父', pinyin: 'fù', translations: { fr: 'père', en: 'father', de: 'Vater', it: 'padre', es: 'padre', fa: 'پدر' } },
+                    { hanzi: '母', pinyin: 'mǔ', translations: { fr: 'mère', en: 'mother', de: 'Mutter', it: 'madre', es: 'madre', fa: 'مادر' } },
+                    { hanzi: '儿', pinyin: 'ér', translations: { fr: 'enfant', en: 'child', de: 'Kind', it: 'bambino', es: 'niño', fa: 'کودک' } },
+                    { hanzi: '子', pinyin: 'zǐ', translations: { fr: 'fils', en: 'son', de: 'Sohn', it: 'figlio', es: 'hijo', fa: 'پسر' } },
+                    { hanzi: '女', pinyin: 'nǚ', translations: { fr: 'fille', en: 'daughter', de: 'Tochter', it: 'figlia', es: 'hija', fa: 'دختر' } },
+                    { hanzi: '兄', pinyin: 'xiōng', translations: { fr: 'frère aîné', en: 'older brother', de: 'älterer Bruder', it: 'fratello maggiore', es: 'hermano mayor', fa: 'برادر بزرگتر' } },
+                    { hanzi: '弟', pinyin: 'dì', translations: { fr: 'frère cadet', en: 'younger brother', de: 'jüngerer Bruder', it: 'fratello minore', es: 'hermano menor', fa: 'برادر کوچکتر' } },
+                    { hanzi: '姐', pinyin: 'jiě', translations: { fr: 'sœur aînée', en: 'older sister', de: 'ältere Schwester', it: 'sorella maggiore', es: 'hermana mayor', fa: 'خواهر بزرگتر' } },
+                    { hanzi: '妹', pinyin: 'mèi', translations: { fr: 'sœur cadette', en: 'younger sister', de: 'jüngere Schwester', it: 'sorella minore', es: 'hermana menor', fa: 'خواهر کوچکتر' } },
+                    { hanzi: '夫', pinyin: 'fū', translations: { fr: 'mari', en: 'husband', de: 'Ehemann', it: 'marito', es: 'esposo', fa: 'شوهر' } },
+                    { hanzi: '妻', pinyin: 'qī', translations: { fr: 'épouse', en: 'wife', de: 'Ehefrau', it: 'moglie', es: 'esposa', fa: 'همسر' } },
+                    { hanzi: '男', pinyin: 'nán', translations: { fr: 'homme', en: 'man', de: 'Mann', it: 'uomo', es: 'hombre', fa: 'مرد' } },
+                    { hanzi: '女', pinyin: 'nǚ', translations: { fr: 'femme', en: 'woman', de: 'Frau', it: 'femme', es: 'mujer', fa: 'زن' } },
+                    { hanzi: '孩', pinyin: 'hái', translations: { fr: 'enfant', en: 'child', de: 'Kind', it: 'enfant', es: 'niño', fa: 'کودک' } },
+                    { hanzi: '朋', pinyin: 'péng', translations: { fr: 'ami', en: 'friend', de: 'Freund', it: 'ami', es: 'amigo', fa: 'دوست' } }
+                ]
+            },
+            food: {
+                name: "Nourriture",
+                level: "A2",
+                characters: [
+                    { hanzi: '食', pinyin: 'shí', translations: { fr: 'nourriture', en: 'food', de: 'Essen', it: 'cibo', es: 'comida', fa: 'غذا' } },
+                    { hanzi: '米', pinyin: 'mǐ', translations: { fr: 'riz', en: 'rice', de: 'Reis', it: 'riso', es: 'arroz', fa: 'برنج' } },
+                    { hanzi: '面', pinyin: 'miàn', translations: { fr: 'nouilles', en: 'noodles', de: 'Nudeln', it: 'noodles', es: 'fideos', fa: 'نودل' } },
+                    { hanzi: '肉', pinyin: 'ròu', translations: { fr: 'viande', en: 'meat', de: 'Fleisch', it: 'carne', es: 'carne', fa: 'گوشت' } },
+                    { hanzi: '鱼', pinyin: 'yú', translations: { fr: 'poisson', en: 'fish', de: 'Fisch', it: 'pesce', es: 'pescado', fa: 'ماهی' } },
+                    { hanzi: '鸡', pinyin: 'jī', translations: { fr: 'poulet', en: 'chicken', de: 'Huhn', it: 'pollo', es: 'pollo', fa: 'مرغ' } },
+                    { hanzi: '牛', pinyin: 'niú', translations: { fr: 'bœuf', en: 'beef', de: 'Rind', it: 'manzo', es: 'res', fa: 'گاو' } },
+                    { hanzi: '猪', pinyin: 'zhū', translations: { fr: 'porc', en: 'pork', de: 'Schwein', it: 'maiale', es: 'cerdo', fa: 'خوک' } },
+                    { hanzi: '菜', pinyin: 'cài', translations: { fr: 'légume', en: 'vegetable', de: 'Gemüse', it: 'verdura', es: 'verdura', fa: 'سبزی' } },
+                    { hanzi: '果', pinyin: 'guǒ', translations: { fr: 'fruit', en: 'fruit', de: 'Frucht', it: 'frutta', es: 'fruta', fa: 'میوه' } },
+                    { hanzi: '茶', pinyin: 'chá', translations: { fr: 'thé', en: 'tea', de: 'Tee', it: 'tè', es: 'té', fa: 'چای' } },
+                    { hanzi: '水', pinyin: 'shuǐ', translations: { fr: 'eau', en: 'water', de: 'Wasser', it: 'acqua', es: 'agua', fa: 'آب' } },
+                    { hanzi: '酒', pinyin: 'jiǔ', translations: { fr: 'alcool', en: 'alcohol', de: 'Alkohol', it: 'alcol', es: 'alcohol', fa: 'الکل' } },
+                    { hanzi: '饭', pinyin: 'fàn', translations: { fr: 'repas', en: 'meal', de: 'Mahlzeit', it: 'pasto', es: 'comida', fa: 'غذا' } },
+                    { hanzi: '汤', pinyin: 'tāng', translations: { fr: 'soupe', en: 'soup', de: 'Suppe', it: 'zuppa', es: 'sopa', fa: 'سوپ' } },
+                    { hanzi: '蛋', pinyin: 'dàn', translations: { fr: 'œuf', en: 'egg', de: 'Ei', it: 'uovo', es: 'huevo', fa: 'تخم مرغ' } }
+                ]
+            },
+            verbs: {
+                name: "Verbes Communs",
+                level: "B1",
+                characters: [
+                    { hanzi: '是', pinyin: 'shì', translations: { fr: 'être', en: 'to be', de: 'sein', it: 'essere', es: 'ser', fa: 'بودن' } },
+                    { hanzi: '有', pinyin: 'yǒu', translations: { fr: 'avoir', en: 'to have', de: 'haben', it: 'avere', es: 'tener', fa: 'داشتن' } },
+                    { hanzi: '做', pinyin: 'zuò', translations: { fr: 'faire', en: 'to do', de: 'tun', it: 'fare', es: 'hacer', fa: 'انجام دادن' } },
+                    { hanzi: '去', pinyin: 'qù', translations: { fr: 'aller', en: 'to go', de: 'gehen', it: 'andare', es: 'ir', fa: 'رفتن' } },
+                    { hanzi: '来', pinyin: 'lái', translations: { fr: 'venir', en: 'to come', de: 'kommen', it: 'venire', es: 'venir', fa: 'آمدن' } },
+                    { hanzi: '说', pinyin: 'shuō', translations: { fr: 'parler', en: 'to speak', de: 'sprechen', it: 'parlare', es: 'hablar', fa: 'صحبت کردن' } },
+                    { hanzi: '看', pinyin: 'kàn', translations: { fr: 'regarder', en: 'to look', de: 'schauen', it: 'guardare', es: 'mirar', fa: 'نگاه کردن' } },
+                    { hanzi: '听', pinyin: 'tīng', translations: { fr: 'écouter', en: 'to listen', de: 'hören', it: 'ascoltare', es: 'escuchar', fa: 'شنیدن' } },
+                    { hanzi: '读', pinyin: 'dú', translations: { fr: 'lire', en: 'to read', de: 'lesen', it: 'leggere', es: 'leer', fa: 'خواندن' } },
+                    { hanzi: '写', pinyin: 'xiě', translations: { fr: 'écrire', en: 'to write', de: 'schreiben', it: 'scrivere', es: 'escribir', fa: 'نوشتن' } },
+                    { hanzi: '学', pinyin: 'xué', translations: { fr: 'étudier', en: 'to study', de: 'lernen', it: 'studiare', es: 'estudiar', fa: 'خواندن' } },
+                    { hanzi: '买', pinyin: 'mǎi', translations: { fr: 'acheter', en: 'to buy', de: 'kaufen', it: 'comprare', es: 'comprar', fa: 'خریدن' } },
+                    { hanzi: '卖', pinyin: 'mài', translations: { fr: 'vendre', en: 'to sell', de: 'verkaufen', it: 'vendere', es: 'vender', fa: 'فروش' } },
+                    { hanzi: '吃', pinyin: 'chī', translations: { fr: 'manger', en: 'to eat', de: 'essen', it: 'mangiare', es: 'comer', fa: 'خوردن' } },
+                    { hanzi: '喝', pinyin: 'hē', translations: { fr: 'boire', en: 'to drink', de: 'trinken', it: 'bere', es: 'beber', fa: 'نوشیدن' } },
+                    { hanzi: '爱', pinyin: 'ài', translations: { fr: 'aimer', en: 'to love', de: 'lieben', it: 'amare', es: 'amar', fa: 'دOST داشتن' } }
+                ]
+            }
+        };
+
+        // Système de niveaux
+        const levels = [
+            { threshold: 0, name: { fr: "A1 - Débutant", en: "A1 - Beginner", de: "A1 - Anfänger", it: "A1 - Principiante", es: "A1 - Principiante", fa: "A1 - شروع" } },
+            { threshold: 500, name: { fr: "A2 - Élémentaire", en: "A2 - Elementary", de: "A2 - Grundlagen", it: "A2 - Elementare", es: "A2 - Elemental", fa: "A2 - مقدماتی" } },
+            { threshold: 1000, name: { fr: "B1 - Intermédiaire", en: "B1 - Intermediate", de: "B1 - Mittelstufe", it: "B1 - Intermedio", es: "B1 - Intermedio", fa: "B1 - متوسط" } },
+            { threshold: 1500, name: { fr: "B2 - Intermédiaire supérieur", en: "B2 - Upper Intermediate", de: "B2 - Fortgeschritten", it: "B2 - Intermedio Superiore", es: "B2 - Intermedio Alto", fa: "B2 - فوق متوسط" } },
+            { threshold: 2000, name: { fr: "C1 - Avancé", en: "C1 - Advanced", de: "C1 - Sehr Fortgeschritten", it: "C1 - Avanzato", es: "C1 - Avanzado", fa: "C1 - پیشرفته" } },
+            { threshold: 2500, name: { fr: "C2 - Maîtrise", en: "C2 - Mastery", de: "C2 - Beherrschung", it: "C2 - Padronanza", es: "C2 - Maestría", fa: "C2 - تسلط" } }
+        ];
+
+        let currentTheme = 'basics';
+        let currentLanguage = 'fr';
+        let gameBoard = [];
+        let selectedTile = null;
+        let score = 0;
+        let matchedPairs = 0;
+        let totalPairs = 16;
+        let startTime = null;
+        let timerInterval = null;
+        let isProcessing = false;
+        let currentSound = null;
+        let timeElapsed = 0;
+
+        // Initialisation du jeu
+        function initGame() {
+            loadSettings();
+            updateUITexts();
+            newGame();
+            
+            // Ajouter les écouteurs d'événements
+            document.getElementById('languageSelect').addEventListener('change', function() {
+                currentLanguage = this.value;
+                updateUITexts();
+                updateLevelDisplay();
+            });
+            
+            document.getElementById('themeSelect').addEventListener('change', function() {
+                currentTheme = this.value;
+                newGame();
+            });
+            
+            document.getElementById('zoomSelect').addEventListener('change', function() {
+                document.body.style.zoom = this.value + '%';
+            });
+        }
+
+        // Charger les paramètres depuis le localStorage
+        function loadSettings() {
+            const savedLanguage = localStorage.getItem('chineseMahjongLanguage');
+            const savedZoom = localStorage.getItem('chineseMahjongZoom');
+            const savedTheme = localStorage.getItem('chineseMahjongTheme');
+            
+            if (savedLanguage) {
+                currentLanguage = savedLanguage;
+                document.getElementById('languageSelect').value = currentLanguage;
+            }
+            
+            if (savedZoom) {
+                document.body.style.zoom = savedZoom + '%';
+                document.getElementById('zoomSelect').value = savedZoom;
+            }
+            
+            if (savedTheme) {
+                currentTheme = savedTheme;
+                document.getElementById('themeSelect').value = currentTheme;
+            }
+        }
+
+        // Sauvegarder les paramètres dans le localStorage
+        function saveSettings() {
+            const language = document.getElementById('languageSelect').value;
+            const zoom = document.getElementById('zoomSelect').value;
+            const theme = document.getElementById('themeSelect').value;
+            
+            localStorage.setItem('chineseMahjongLanguage', language);
+            localStorage.setItem('chineseMahjongZoom', zoom);
+            localStorage.setItem('chineseMahjongTheme', theme);
+            
+            currentLanguage = language;
+            currentTheme = theme;
+            document.body.style.zoom = zoom + '%';
+            
+            updateUITexts();
+            updateLevelDisplay();
+            
+            // Redémarrer le jeu avec les nouveaux paramètres
+            newGame();
+            
+            alert("Paramètres sauvegardés avec succès!");
+        }
+
+        // Mise à jour des textes de l'interface
+        function updateUITexts() {
+            const translations = {
+                fr: {
+                    score: "Score",
+                    pairs: "Paires",
+                    time: "Temps",
+                    newGame: "Nouvelle Partie",
+                    hint: "Indice 💡",
+                    shuffle: "Mélanger 🔄",
+                    victory: "🎉 Félicitations! 🎉",
+                    completed: "Vous avez terminé le jeu!",
+                    finalScore: "Score final",
+                    finalLevel: "Niveau atteint",
+                    finalTime: "Temps",
+                    scores: "Scores 🏆",
+                    language: "Langue:",
+                    theme: "Thème de vocabulaire:",
+                    zoom: "Zoom (PC):",
+                    apply: "Appliquer les paramètres"
+                },
+                en: {
+                    score: "Score",
+                    pairs: "Pairs",
+                    time: "Time",
+                    newGame: "New Game",
+                    hint: "Hint 💡",
+                    shuffle: "Shuffle 🔄",
+                    victory: "🎉 Congratulations! 🎉",
+                    completed: "You completed the game!",
+                    finalScore: "Final score",
+                    finalLevel: "Level reached",
+                    finalTime: "Time",
+                    scores: "Scores 🏆",
+                    language: "Language:",
+                    theme: "Vocabulary theme:",
+                    zoom: "Zoom (PC):",
+                    apply: "Apply settings"
+                },
+                de: {
+                    score: "Punkte",
+                    pairs: "Paare",
+                    time: "Zeit",
+                    newGame: "Neues Spiel",
+                    hint: "Hinweis 💡",
+                    shuffle: "Mischen 🔄",
+                    victory: "🎉 Glückwunsch! 🎉",
+                    completed: "Sie haben das Spiel beendet!",
+                    finalScore: "Endstand",
+                    finalLevel: "Erreichtes Level",
+                    finalTime: "Zeit",
+                    scores: "Ergebnisse 🏆",
+                    language: "Sprache:",
+                    theme: "Wortschatz-Thema:",
+                    zoom: "Zoom (PC):",
+                    apply: "Einstellungen anwenden"
+                },
+                it: {
+                    score: "Punteggio",
+                    pairs: "Coppie",
+                    time: "Tempo",
+                    newGame: "Nuova Partita",
+                    hint: "Suggerimento 💡",
+                    shuffle: "Mescola 🔄",
+                    victory: "🎉 Congratulazioni! 🎉",
+                    completed: "Hai completato il gioco!",
+                    finalScore: "Punteggio finale",
+                    finalLevel: "Livello raggiunto",
+                    finalTime: "Tempo",
+                    scores: "Punteggi 🏆",
+                    language: "Lingua:",
+                    theme: "Tema vocabolario:",
+                    zoom: "Zoom (PC):",
+                    apply: "Applica impostazioni"
+                },
+                es: {
+                    score: "Puntuación",
+                    pairs: "Pares",
+                    time: "Tiempo",
+                    newGame: "Nuevo Juego",
+                    hint: "Pista 💡",
+                    shuffle: "Barajar 🔄",
+                    victory: "🎉 ¡Felicidades! 🎉",
+                    completed: "¡Has completado el juego!",
+                    finalScore: "Puntuación final",
+                    finalLevel: "Nivel alcanzado",
+                    finalTime: "Tiempo",
+                    scores: "Puntuaciones 🏆",
+                    language: "Idioma:",
+                    theme: "Tema de vocabulario:",
+                    zoom: "Zoom (PC):",
+                    apply: "Aplicar configuración"
+                },
+                fa: {
+                    score: "امتیاز",
+                    pairs: "جفت ها",
+                    time: "زمان",
+                    newGame: "بازی جدید",
+                    hint: "راهنمایی 💡",
+                    shuffle: "برزدن 🔄",
+                    victory: "🎉 تبریک! 🎉",
+                    completed: "شما بازی را تکمیل کردید!",
+                    finalScore: "امتیاز نهایی",
+                    finalLevel: "سطح رسیده",
+                    finalTime: "زمان",
+                    scores: "امتیازات 🏆",
+                    language: "زبان:",
+                    theme: "تم واژگان:",
+                    zoom: "زوم (PC):",
+                    apply: "اعمال تنظیمات"
+                }
+            };
+
+            const lang = translations[currentLanguage];
+            document.querySelectorAll('.info-item')[0].innerHTML = `${lang.score}: <span id="score">0</span>`;
+            document.querySelectorAll('.info-item')[1].innerHTML = `${lang.pairs}: <span id="pairs">0</span>/16`;
+            document.querySelectorAll('.info-item')[2].innerHTML = `${lang.time}: <span id="timer">00:00</span>`;
+            
+            document.querySelectorAll('button')[0].textContent = lang.newGame;
+            document.querySelectorAll('button')[1].textContent = lang.hint;
+            document.querySelectorAll('button')[2].textContent = lang.shuffle;
+            document.querySelectorAll('button')[3].textContent = lang.scores;
+            document.querySelectorAll('button')[4].textContent = lang.apply;
+            
+            document.querySelector('label[for="languageSelect"]').textContent = lang.language;
+            document.querySelector('label[for="themeSelect"]').textContent = lang.theme;
+            document.querySelector('label[for="zoomSelect"]').textContent = lang.zoom;
+            
+            document.getElementById('victoryMessage').querySelector('h2').textContent = lang.victory;
+            document.getElementById('victoryMessage').querySelectorAll('p')[0].textContent = lang.completed;
+            document.getElementById('victoryMessage').querySelectorAll('p')[1].innerHTML = `${lang.finalScore}: <span id="finalScore">0</span>`;
+            document.getElementById('victoryMessage').querySelectorAll('p')[2].innerHTML = `${lang.finalLevel}: <span id="finalLevel">A1 - Débutant</span>`;
+            document.getElementById('victoryMessage').querySelectorAll('p')[3].innerHTML = `${lang.finalTime}: <span id="finalTime">00:00</span>`;
+        }
+
+        // Mise à jour de l'affichage du niveau
+        function updateLevelDisplay() {
+            const currentLevel = getCurrentLevel();
+            document.getElementById('level').textContent = currentLevel.name[currentLanguage];
+        }
+
+        // Obtenir le niveau actuel en fonction du score
+        function getCurrentLevel() {
+            for (let i = levels.length - 1; i >= 0; i--) {
+                if (score >= levels[i].threshold) {
+                    return levels[i];
+                }
+            }
+            return levels[0];
+        }
+
+        // Création du plateau de jeu
+        function createBoard() {
+            const boardElement = document.getElementById('gameBoard');
+            boardElement.innerHTML = '';
+            gameBoard = [];
+            
+            const themeData = themes[currentTheme];
+            let tiles = [];
+            
+            // Créer exactement 2 tuiles pour chaque caractère (16 paires)
+            themeData.characters.forEach(char => {
+                tiles.push(char, char);
+            });
+            
+            // Mélanger les tuiles
+            tiles = shuffleArray(tiles);
+            
+            // Créer les éléments DOM
+            tiles.forEach((char, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.innerHTML = `<div>${char.hanzi}</div><div class="pinyin">${char.pinyin}</div>`;
+                tile.dataset.index = index;
+                tile.dataset.hanzi = char.hanzi;
+                tile.dataset.pinyin = char.pinyin;
+                tile.addEventListener('click', () => selectTile(tile));
+                boardElement.appendChild(tile);
+                gameBoard.push({element: tile, char: char, matched: false});
+            });
+            
+            updateInfo();
+            updateLevelDisplay();
+        }
+
+        // Mélanger un tableau
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Sélection d'une tuile
+        function selectTile(tile) {
+            if (isProcessing) return;
+            if (tile.classList.contains('matched')) return;
+            if (tile === selectedTile) {
+                tile.classList.remove('selected');
+                selectedTile = null;
+                return;
+            }
+            
+            if (!selectedTile) {
+                selectedTile = tile;
+                tile.classList.add('selected');
+            } else {
+                checkMatch(selectedTile, tile);
+            }
+        }
+
+        // Vérification de correspondance
+        function checkMatch(tile1, tile2) {
+            isProcessing = true;
+            tile2.classList.add('selected');
+            
+            setTimeout(() => {
+                if (tile1.dataset.hanzi === tile2.dataset.hanzi) {
+                    // Match trouvé!
+                    tile1.classList.add('matched');
+                    tile2.classList.add('matched');
+                    tile1.classList.remove('selected');
+                    tile2.classList.remove('selected');
+                    
+                    // Calcul du score basé sur le temps
+                    const timeBonus = Math.max(100, 500 - Math.floor(timeElapsed / 10));
+                    score += timeBonus;
+                    matchedPairs++;
+                    
+                    // Afficher l'information d'apprentissage
+                    showLearningInfo(tile1.dataset.hanzi, tile1.dataset.pinyin);
+                    
+                    // Prononcer le caractère
+                    playSound(tile1.dataset.hanzi);
+                    
+                    // Retirer les tuiles après l'animation
+                    setTimeout(() => {
+                        tile1.style.visibility = 'hidden';
+                        tile2.style.visibility = 'hidden';
+                    }, 600);
+                    
+                    updateInfo();
+                    updateLevelDisplay();
+                    
+                    if (matchedPairs === totalPairs) {
+                        victory();
+                    }
+                } else {
+                    // Pas de match
+                    tile1.classList.remove('selected');
+                    tile2.classList.remove('selected');
+                    // Pas de pénalité de score, seulement le temps compte
+                    updateInfo();
+                    updateLevelDisplay();
+                }
+                
+                selectedTile = null;
+                isProcessing = false;
+            }, 500);
+        }
+
+        // Afficher l'information d'apprentissage
+        function showLearningInfo(hanzi, pinyin) {
+            const themeData = themes[currentTheme];
+            const charInfo = themeData.characters.find(c => c.hanzi === hanzi);
+            if (!charInfo) return;
+            
+            document.getElementById('popupHanzi').textContent = hanzi;
+            document.getElementById('popupPinyin').textContent = pinyin;
+            document.getElementById('popupTranslation').textContent = charInfo.translations[currentLanguage];
+            
+            const popup = document.getElementById('learningPopup');
+            popup.style.display = 'block';
+            
+            // Masquer la popup après 5 secondes
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 5000);
+            
+            // Stocker les informations pour la lecture audio
+            currentSound = hanzi;
+        }
+
+        // Jouer le son du caractère
+        function playSound(hanzi) {
+            // Utilisation de l'API Web Speech pour la synthèse vocale
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(hanzi);
+                utterance.lang = 'zh-CN';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Rejouer le son actuel
+        function playCurrentSound() {
+            if (currentSound) {
+                playSound(currentSound);
+            }
+        }
+
+        // Mise à jour des informations du jeu
+        function updateInfo() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('pairs').textContent = matchedPairs;
+        }
+
+        // Démarrer le timer
+        function startTimer() {
+            startTime = Date.now();
+            timeElapsed = 0;
+            timerInterval = setInterval(() => {
+                timeElapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(timeElapsed / 60);
+                const seconds = timeElapsed % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Arrêter le timer
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Nouvelle partie
+        function newGame() {
+            stopTimer();
+            score = 0;
+            matchedPairs = 0;
+            selectedTile = null;
+            isProcessing = false;
+            
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('victoryMessage').style.display = 'none';
+            document.getElementById('learningPopup').style.display = 'none';
+            
+            createBoard();
+            startTimer();
+        }
+
+        // Indice
+        function hint() {
+            if (isProcessing) return;
+            
+            const unmatchedTiles = gameBoard.filter(t => 
+                !t.element.classList.contains('matched')
+            );
+            
+            if (unmatchedTiles.length < 2) return;
+            
+            // Trouver deux tuiles avec le même caractère
+            for (let i = 0; i < unmatchedTiles.length; i++) {
+                for (let j = i + 1; j < unmatchedTiles.length; j++) {
+                    if (unmatchedTiles[i].char.hanzi === unmatchedTiles[j].char.hanzi) {
+                        // Faire clignoter les tuiles
+                        unmatchedTiles[i].element.style.background = 'linear-gradient(145deg, #ff9a3c, #ff7c00)';
+                        unmatchedTiles[j].element.style.background = 'linear-gradient(145deg, ' + 
+                            '#ff9a3c, #ff7c00)';
+                        
+                        setTimeout(() => {
+                            unmatchedTiles[i].element.style.background = '';
+                            unmatchedTiles[j].element.style.background = '';
+                        }, 1000);
+                        
+                        // Pas de pénalité de score
+                        updateInfo();
+                        updateLevelDisplay();
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Mélanger les tuiles
+        function shuffle() {
+            if (isProcessing) return;
+            
+            const unmatchedTiles = gameBoard.filter(t => 
+                !t.element.classList.contains('matched')
+            );
+            
+            if (unmatchedTiles.length < 2) return;
+            
+            // Collecter les caractères des tuiles non matchées
+            let chars = unmatchedTiles.map(t => t.char);
+            chars = shuffleArray(chars);
+            
+            // Réassigner les caractères
+            unmatchedTiles.forEach((tile, index) => {
+                tile.char = chars[index];
+                tile.element.dataset.hanzi = chars[index].hanzi;
+                tile.element.dataset.pinyin = chars[index].pinyin;
+                tile.element.innerHTML = `<div>${chars[index].hanzi}</div><div class="pinyin">${chars[index].pinyin}</div>`;
+            });
+            
+            // Pas de pénalité de score
+            updateInfo();
+            updateLevelDisplay();
+        }
+
+        // Victoire
+        function victory() {
+            stopTimer();
+            const currentLevel = getCurrentLevel();
+            
+            // Sauvegarder le score
+            saveScore(score, currentTheme, timeElapsed);
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalLevel').textContent = currentLevel.name[currentLanguage];
+            document.getElementById('finalTime').textContent = document.getElementById('timer').textContent;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('victoryMessage').style.display = 'block';
+        }
+
+        // Sauvegarder le score dans le localStorage
+        function saveScore(score, theme, time) {
+            const scores = JSON.parse(localStorage.getItem('chineseMahjongScores')) || [];
+            const themeData = themes[theme];
+            
+            scores.push({
+                score: score,
+                theme: theme,
+                themeName: themeData.name,
+                level: themeData.level,
+                time: time,
+                date: new Date().toISOString(),
+                language: currentLanguage
+            });
+            
+            // Trier par score décroissant et garder les 10 meilleurs
+            scores.sort((a, b) => b.score - a.score);
+            const topScores = scores.slice(0, 10);
+            
+            localStorage.setItem('chineseMahjongScores', JSON.stringify(topScores));
+        }
+
+        // Afficher les scores
+        function showScores() {
+            const scores = JSON.parse(localStorage.getItem('chineseMahjongScores')) || [];
+            let message = "Meilleurs scores:\n\n";
+            
+            if (scores.length === 0) {
+                message += "Aucun score enregistré.";
+            } else {
+                scores.forEach((score, index) => {
+                    const date = new Date(score.date).toLocaleDateString();
+                    message += `${index + 1}. ${score.score} pts - ${score.themeName} (${score.level}) - ${score.time}s - ${date}\n`;
+                });
+            }
+            
+            alert(message);
+        }
+
+        // Initialiser le jeu au chargement
+        window.onload = initGame;
+    </script>
+</body>
+</html>
