@@ -1083,6 +1083,12 @@
         function shuffle() {
             if (isProcessing) return;
             
+            // Sauvegarder les textes originaux des boutons
+            const buttonTexts = [];
+            document.querySelectorAll('.controls button').forEach(button => {
+                buttonTexts.push(button.textContent);
+            });
+            
             const unmatchedTiles = gameBoard.filter(t => 
                 !t.element.classList.contains('matched')
             );
@@ -1101,11 +1107,15 @@
                 tile.element.innerHTML = `<div>${chars[index].hanzi}</div><div class="pinyin">${chars[index].pinyin}</div>`;
             });
             
+            // Restaurer les textes des boutons
+            document.querySelectorAll('.controls button').forEach((button, index) => {
+                button.textContent = buttonTexts[index];
+            });
+            
             // Pas de pénalité de score
             updateInfo();
             updateLevelDisplay();
         }
-
         // Victoire
         function victory() {
             stopTimer();
